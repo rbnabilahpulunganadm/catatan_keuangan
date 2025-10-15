@@ -1,0 +1,656 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kasir Nabilah Pulungan Spa & Clinic</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;500;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/qrcode-generator/qrcode.js"></script>
+    
+    <style>
+        body {
+            font-family: 'M PLUS Rounded 1c', sans-serif;
+            background-color: #FFF0F5; /* Lavender Blush */
+        }
+        .sakura-petal {
+            position: absolute;
+            background-color: #FFB7C5; /* Light Pink */
+            border-radius: 150px 0;
+            animation: fall linear infinite;
+            pointer-events: none;
+        }
+        @keyframes fall {
+            0% { transform: translateY(-10vh) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(110vh) rotate(720deg); opacity: 0; }
+        }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        .nav-item.active {
+            background-color: #F472B6; /* Pink-500 */
+            color: white;
+        }
+        .item-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            gap: 1rem;
+        }
+        .item-card {
+            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+        }
+        .item-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05);
+        }
+        .modal-bg {
+            background-color: rgba(0,0,0,0.5);
+            -webkit-backdrop-filter: blur(5px);
+            backdrop-filter: blur(5px);
+        }
+    </style>
+</head>
+<body class="antialiased text-gray-800">
+
+    <!-- Opening Splash Screen -->
+    <div id="splash-screen" class="fixed inset-0 bg-pink-100 flex flex-col justify-center items-center z-50 transition-opacity duration-1000">
+        <div id="sakura-container"></div>
+        <h1 class="text-4xl font-bold text-pink-500 animate-pulse">Nabilah Pulungan</h1>
+        <p class="text-xl text-pink-400">Spa & Clinic</p>
+    </div>
+    
+    <!-- Main App Container -->
+    <div id="app" class="hidden">
+        <main id="main-content" class="pb-20">
+            <!-- Konten akan di-render di sini -->
+        </main>
+        
+        <!-- Bottom Navigation -->
+        <nav class="fixed bottom-0 left-0 right-0 bg-white shadow-lg rounded-t-2xl flex justify-around p-2 z-40">
+            <button onclick="showTab('pos')" class="nav-item flex-1 flex flex-col items-center p-2 rounded-lg transition-colors duration-200">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
+                <span class="text-xs mt-1">Kasir</span>
+            </button>
+            <button onclick="showTab('customers')" class="nav-item flex-1 flex flex-col items-center p-2 rounded-lg transition-colors duration-200">
+                 <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M15 21a6 6 0 00-9-5.197m0 0A5.995 5.995 0 0012 12.75a5.995 5.995 0 00-3-5.197z" /></svg>
+                <span class="text-xs mt-1">Pelanggan</span>
+            </button>
+            <button onclick="showTab('inventory')" class="nav-item flex-1 flex flex-col items-center p-2 rounded-lg transition-colors duration-200">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" /></svg>
+                <span class="text-xs mt-1">Inventaris</span>
+            </button>
+            <button onclick="showTab('reports')" class="nav-item flex-1 flex flex-col items-center p-2 rounded-lg transition-colors duration-200">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2h10a2 2 0 002-2z" /></svg>
+                <span class="text-xs mt-1">Laporan</span>
+            </button>
+        </nav>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div id="loading-overlay" class="hidden fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+        <div class="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-pink-400"></div>
+    </div>
+    
+    <!-- Modal -->
+    <div id="modal-container" class="hidden fixed inset-0 z-50 overflow-y-auto">
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div class="fixed inset-0 modal-bg" onclick="closeModal()"></div>
+            <div id="modal-content" class="bg-white rounded-lg shadow-xl transform transition-all sm:max-w-lg w-full z-10">
+                <!-- Konten modal akan diisi oleh JavaScript -->
+            </div>
+        </div>
+    </div>
+
+
+    <script>
+    //======================================================================
+    // KONFIGURASI & STATE MANAGEMENT
+    //======================================================================
+
+    // PENTING! Ganti dengan URL Web App Anda yang didapat setelah deploy
+    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwgZgvgnwjW-OP0erR0lxUBQmEEBTzIjB4rrdfHwX5C1xi0fJZPt09IjbagaXDNw2sGqw/exec";
+
+    let state = {
+        products: [],
+        services: [],
+        customers: [],
+        transactions: [],
+        cart: [],
+        currentTab: 'pos',
+        discount: { type: 'none', value: 0 }
+    };
+
+    /**
+     * Fungsi untuk berkomunikasi dengan API Google Apps Script
+     * @param {string} action - Nama fungsi yang ingin dipanggil di backend
+     * @param {object} payload - Data yang ingin dikirim
+     * @returns {Promise<any>}
+     */
+    async function apiCall(action, payload = {}) {
+        if (!WEB_APP_URL || WEB_APP_URL === "SALIN_DAN_TEMPEL_URL_WEB_APP_ANDA_DI_SINI") {
+            alert("Kesalahan Konfigurasi: URL Web App belum diatur di dalam file index.html!");
+            throw new Error("WEB_APP_URL is not set.");
+        }
+        
+        showLoading();
+        try {
+            const response = await fetch(WEB_APP_URL, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ action, payload }),
+                redirect: 'follow'
+            });
+
+            const result = await response.json();
+            
+            if (result.status === "error") {
+                throw new Error(result.message);
+            }
+            return result.result;
+
+        } catch (error) {
+            onFailure(error);
+            // Re-throw error untuk menghentikan eksekusi selanjutnya jika perlu
+            throw error;
+        } finally {
+            hideLoading();
+        }
+    }
+
+
+    window.addEventListener('DOMContentLoaded', () => {
+        setupSakura();
+        setTimeout(async () => {
+            document.getElementById('splash-screen').style.opacity = '0';
+            document.getElementById('app').classList.remove('hidden');
+            setTimeout(() => document.getElementById('splash-screen').style.display = 'none', 1000);
+            
+            try {
+                // Panggil setup spreadsheet dulu.
+                const setupResult = await apiCall('setupSpreadsheet');
+                console.log(setupResult.message);
+                
+                // Setelah setup berhasil, baru ambil data awal
+                const initialData = await apiCall('getInitialData');
+                onDataReady(initialData);
+
+            } catch (error) {
+                console.error("Gagal melakukan setup awal:", error);
+            }
+
+        }, 2500);
+    });
+
+    function onDataReady(data) {
+        if (data.error) {
+            onFailure({ message: data.error });
+            return;
+        }
+        state.products = data.products || [];
+        state.services = data.services || [];
+        state.customers = data.customers || [];
+        state.transactions = data.transactions || [];
+        showTab('pos'); // Tampilkan tab POS sebagai default
+    }
+
+    function onFailure(error) {
+        alert('Terjadi kesalahan: ' + error.message);
+        console.error(error);
+    }
+    
+    //======================================================================
+    // FUNGSI-FUNGSI RENDER TAMPILAN (TIDAK BERUBAH BANYAK)
+    //======================================================================
+    
+    // ... (Semua fungsi render seperti renderPOS, renderCustomers, dll tetap sama)
+    function showTab(tabName) {
+        state.currentTab = tabName;
+        document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+        document.querySelector(`.nav-item[onclick="showTab('${tabName}')"]`).classList.add('active');
+
+        const mainContent = document.getElementById('main-content');
+        switch(tabName) {
+            case 'pos':
+                mainContent.innerHTML = renderPOS();
+                attachPosListeners();
+                renderCart();
+                break;
+            case 'customers':
+                mainContent.innerHTML = renderCustomers();
+                break;
+            case 'inventory':
+                mainContent.innerHTML = renderInventory();
+                break;
+            case 'reports':
+                mainContent.innerHTML = renderReports();
+                if(state.transactions.length > 0) initializeCharts();
+                break;
+        }
+    }
+
+    function renderPOS() {
+        const allItems = [...state.services, ...state.products];
+        const categories = [...new Set(allItems.map(item => item.Category))];
+
+        return `
+            <div class="p-4">
+                <div class="bg-white p-4 rounded-xl shadow-md mb-4">
+                    <h1 class="text-xl font-bold text-pink-600">Aplikasi Kasir</h1>
+                    <div class="mt-2 flex space-x-2">
+                        <input id="search-item" type="text" placeholder="Cari item..." class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-400">
+                    </div>
+                    <div id="category-filters" class="mt-3 flex flex-wrap gap-2">
+                        <button class="filter-btn active bg-pink-500 text-white px-3 py-1 rounded-full text-sm" data-category="all">Semua</button>
+                        ${categories.map(cat => `<button class="filter-btn bg-white text-gray-700 px-3 py-1 rounded-full text-sm border" data-category="${cat}">${cat}</button>`).join('')}
+                    </div>
+                </div>
+                <div id="item-grid" class="item-grid">
+                    ${renderItems(state.services, 'service')}
+                    ${renderItems(state.products, 'product')}
+                </div>
+            </div>
+            
+            <div id="cart-fab" class="fixed bottom-20 right-4 z-30">
+                <button onclick="showCheckoutModal()" class="bg-pink-500 text-white rounded-full p-4 shadow-lg transition transform hover:scale-110">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
+                    <span id="cart-count" class="absolute top-0 right-0 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">0</span>
+                </button>
+            </div>
+        `;
+    }
+
+    function renderItems(items, type) {
+        return items.map(item => `
+            <div class="item-card bg-white rounded-lg shadow-md p-3 text-center cursor-pointer ${type === 'service' ? 'border-t-4 border-pink-400' : 'border-t-4 border-indigo-400'}" 
+                 data-id="${item.ServiceID || item.ProductID}" 
+                 data-name="${item.Name}" 
+                 data-price="${item.Price || item.SellPrice}"
+                 data-type="${type}">
+                <p class="font-semibold text-sm">${item.Name}</p>
+                <p class="text-xs text-gray-500">${formatCurrency(item.Price || item.SellPrice)}</p>
+                ${type === 'product' ? `<p class="text-xs text-gray-400 mt-1">Stok: ${item.Stock}</p>` : ''}
+            </div>
+        `).join('');
+    }
+    
+    function renderCustomers() {
+        return `
+            <div class="p-4">
+                <h1 class="text-xl font-bold text-pink-600 mb-4">Manajemen Pelanggan</h1>
+                <!-- Customer list will go here -->
+            </div>
+        `;
+    }
+    
+    function renderInventory() {
+        return `
+            <div class="p-4">
+                <h1 class="text-xl font-bold text-pink-600 mb-4">Manajemen Inventaris & Layanan</h1>
+                <!-- Inventory management UI will go here -->
+            </div>
+        `;
+    }
+    
+    function renderReports() {
+        if(!state.transactions || state.transactions.length === 0){
+             return `<div class="p-4 text-center text-gray-500">
+                <p>Belum ada data transaksi untuk ditampilkan.</p>
+             </div>`;
+        }
+        return `
+            <div class="p-4">
+                <h1 class="text-xl font-bold text-pink-600 mb-4">Laporan Keuangan</h1>
+                <div class="bg-white p-4 rounded-xl shadow-md mb-4">
+                    <h2 class="font-semibold">Penjualan Harian</h2>
+                    <canvas id="dailySalesChart" height="200"></canvas>
+                </div>
+                <div class="bg-white p-4 rounded-xl shadow-md">
+                    <h2 class="font-semibold">Kategori Populer</h2>
+                    <canvas id="categoryPieChart" height="200"></canvas>
+                </div>
+            </div>
+        `;
+    }
+    
+
+    //======================================================================
+    // LOGIKA APLIKASI (PERUBAHAN UTAMA DI processPayment)
+    //======================================================================
+    // ... (Fungsi seperti attachPosListeners, addToCart, updateCartItem, renderCart, calculateTotals, dll tetap sama)
+     function attachPosListeners() {
+        document.querySelectorAll('.item-card').forEach(card => {
+            card.addEventListener('click', () => addToCart(card.dataset));
+        });
+
+        document.getElementById('search-item').addEventListener('input', (e) => {
+            const searchTerm = e.target.value.toLowerCase();
+            document.querySelectorAll('.item-card').forEach(card => {
+                const name = card.dataset.name.toLowerCase();
+                card.style.display = name.includes(searchTerm) ? 'block' : 'none';
+            });
+        });
+
+        document.querySelectorAll('.filter-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const category = e.target.dataset.category;
+                document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active', 'bg-pink-500', 'text-white'));
+                e.target.classList.add('active', 'bg-pink-500', 'text-white');
+                
+                const allItems = [...state.services.map(i => ({ ...i, type: 'service' })), ...state.products.map(i => ({ ...i, type: 'product' }))];
+                const filtered = category === 'all' ? allItems : allItems.filter(item => item.Category === category);
+                
+                document.getElementById('item-grid').innerHTML = 
+                    renderItems(filtered.filter(i => i.type === 'service'), 'service') +
+                    renderItems(filtered.filter(i => i.type === 'product'), 'product');
+                
+                attachPosListeners(); // Re-attach listeners to new elements
+            });
+        });
+    }
+
+    function addToCart(itemData) {
+        const existingItem = state.cart.find(item => item.id === itemData.id);
+        if (existingItem) {
+            existingItem.quantity++;
+        } else {
+            state.cart.push({
+                id: itemData.id,
+                name: itemData.name,
+                price: parseFloat(itemData.price),
+                quantity: 1,
+                type: itemData.type,
+                discount: 0 // per item discount
+            });
+        }
+        renderCart();
+    }
+    
+    function updateCartItem(id, change) {
+        const item = state.cart.find(i => i.id === id);
+        if (item) {
+            item.quantity += change;
+            if (item.quantity <= 0) {
+                state.cart = state.cart.filter(i => i.id !== id);
+            }
+        }
+        renderCart();
+        // If checkout modal is open, re-render its content
+        if (document.getElementById('modal-container').style.display !== 'none') {
+            document.getElementById('checkout-cart-items').innerHTML = renderCheckoutCartItems();
+        }
+    }
+    
+    function renderCart() {
+        const cartCount = state.cart.reduce((sum, item) => sum + item.quantity, 0);
+        document.getElementById('cart-count').innerText = cartCount;
+        
+        // Re-calculate total for checkout modal display
+        const { subtotal, totalDiscount, total } = calculateTotals();
+        const totalElement = document.getElementById('checkout-total');
+        if (totalElement) {
+            totalElement.innerHTML = `
+                <p class="text-sm">Subtotal: ${formatCurrency(subtotal)}</p>
+                <p class="text-sm text-red-500">Diskon: -${formatCurrency(totalDiscount)}</p>
+                <p class="text-lg font-bold">Total: ${formatCurrency(total)}</p>
+            `;
+        }
+    }
+    
+    function calculateTotals() {
+        const subtotal = state.cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
+        let totalDiscount = 0;
+        
+        if (state.discount.type === 'percent') {
+            totalDiscount = subtotal * (state.discount.value / 100);
+        } else if (state.discount.type === 'fixed') {
+            totalDiscount = state.discount.value;
+        }
+
+        const total = subtotal - totalDiscount;
+        return { subtotal, totalDiscount, total };
+    }
+
+    function showCheckoutModal() {
+        if(state.cart.length === 0) {
+            alert('Keranjang masih kosong!');
+            return;
+        }
+        const { subtotal, totalDiscount, total } = calculateTotals();
+
+        const modalContent = `
+            <div class="p-5">
+                <h3 class="text-lg font-bold mb-4 text-pink-600">Detail Transaksi</h3>
+                <div class="mb-4">
+                    <input id="customer-name" type="text" placeholder="Nama Pelanggan (opsional)" class="w-full px-3 py-2 border rounded-lg mb-2">
+                    <input id="customer-rme" type="text" placeholder="No. RME (opsional)" class="w-full px-3 py-2 border rounded-lg">
+                </div>
+                
+                <div id="checkout-cart-items" class="max-h-48 overflow-y-auto mb-4 border-t border-b py-2">
+                    ${renderCheckoutCartItems()}
+                </div>
+                
+                <div class="flex mb-4 space-x-2">
+                     <select id="discount-type" class="border rounded-lg p-2">
+                        <option value="none">Tanpa Diskon</option>
+                        <option value="percent">Persen (%)</option>
+                        <option value="fixed">Nominal (Rp)</option>
+                    </select>
+                    <input id="discount-value" type="number" placeholder="Nilai Diskon" class="w-full px-3 py-2 border rounded-lg">
+                </div>
+
+                <div id="checkout-total" class="text-right mb-4">
+                    <p class="text-sm">Subtotal: ${formatCurrency(subtotal)}</p>
+                    <p class="text-sm text-red-500">Diskon: -${formatCurrency(totalDiscount)}</p>
+                    <p class="text-lg font-bold">Total: ${formatCurrency(total)}</p>
+                </div>
+
+                <div class="mb-4">
+                    <label class="font-semibold">Metode Pembayaran:</label>
+                    <div class="flex flex-wrap gap-2 mt-2">
+                        <button class="payment-btn flex-1 border border-pink-400 text-pink-400 rounded-lg p-2" data-method="Tunai">Tunai</button>
+                        <button class="payment-btn flex-1 border border-gray-300 rounded-lg p-2" data-method="Kartu">Kartu</button>
+                        <button class="payment-btn flex-1 border border-gray-300 rounded-lg p-2" data-method="QRIS">QRIS</button>
+                    </div>
+                </div>
+
+                <div class="flex justify-end space-x-3">
+                    <button onclick="closeModal()" class="px-4 py-2 bg-gray-200 rounded-lg">Batal</button>
+                    <button onclick="processPayment()" class="px-4 py-2 bg-pink-500 text-white rounded-lg">Proses</button>
+                </div>
+            </div>
+        `;
+        openModal(modalContent);
+        
+        // Add listeners for checkout modal
+        document.getElementById('discount-type').addEventListener('change', applyDiscount);
+        document.getElementById('discount-value').addEventListener('input', applyDiscount);
+        document.querySelectorAll('.payment-btn').forEach(btn => {
+            btn.addEventListener('click', e => {
+                document.querySelectorAll('.payment-btn').forEach(b => b.classList.remove('bg-pink-500', 'text-white'));
+                e.currentTarget.classList.add('bg-pink-500', 'text-white');
+            });
+        });
+    }
+    
+    async function processPayment() {
+        const selectedPaymentBtn = document.querySelector('.payment-btn.bg-pink-500');
+        if (!selectedPaymentBtn) {
+            alert('Pilih metode pembayaran terlebih dahulu!');
+            return;
+        }
+
+        const { subtotal, totalDiscount, total } = calculateTotals();
+        const transaction = {
+            id: `TRX-${new Date().getTime()}`,
+            customerName: document.getElementById('customer-name').value || 'Anonim',
+            rme: document.getElementById('customer-rme').value || '',
+            items: state.cart,
+            subtotal: subtotal,
+            discount: state.discount,
+            total: total,
+            paymentMethod: selectedPaymentBtn.dataset.method
+        };
+        
+        try {
+            const response = await apiCall('recordTransaction', transaction);
+            if (response.status === 'success') {
+                showReceiptModal(transaction);
+                // Reset cart and refresh data from server
+                state.cart = [];
+                state.discount = { type: 'none', value: 0 };
+                renderCart();
+                const updatedData = await apiCall('getInitialData');
+                onDataReady(updatedData);
+            }
+        } catch (error) {
+            console.error("Gagal memproses pembayaran:", error);
+            // onFailure sudah dipanggil di dalam apiCall
+        }
+    }
+    
+    // ... (Fungsi lain-lain seperti showReceiptModal, openModal, closeModal, initializeCharts, utilities tetap sama)
+     function renderCheckoutCartItems() {
+        return state.cart.map(item => `
+            <div class="flex justify-between items-center py-1">
+                <div>
+                    <p class="font-semibold text-sm">${item.name}</p>
+                    <p class="text-xs text-gray-500">${formatCurrency(item.price)}</p>
+                </div>
+                <div class="flex items-center space-x-3">
+                    <button onclick="updateCartItem('${item.id}', -1)" class="bg-gray-200 rounded-full h-6 w-6 flex items-center justify-center">-</button>
+                    <span>${item.quantity}</span>
+                    <button onclick="updateCartItem('${item.id}', 1)" class="bg-gray-200 rounded-full h-6 w-6 flex items-center justify-center">+</button>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    function applyDiscount() {
+        state.discount.type = document.getElementById('discount-type').value;
+        state.discount.value = parseFloat(document.getElementById('discount-value').value) || 0;
+        renderCart(); // This will recalculate and update total in modal
+    }
+    
+    function showReceiptModal(transaction) {
+        const { totalDiscount } = calculateTotals();
+        const transactionJSON = JSON.stringify({id: transaction.id, total: transaction.total, date: new Date().toISOString() });
+        const modalContent = `
+        <div id="receipt" class="p-6 bg-white text-gray-800">
+            <div class="text-center mb-4">
+                <h2 class="text-xl font-bold text-pink-600">Nabilah Pulungan Spa & Clinic</h2>
+                <p class="text-sm">Struk Pembayaran</p>
+            </div>
+            <div class="text-xs mb-4">
+                <p><strong>ID Transaksi:</strong> ${transaction.id}</p>
+                <p><strong>Tanggal:</strong> ${new Date().toLocaleString('id-ID')}</p>
+                <p><strong>Pelanggan:</strong> ${transaction.customerName}</p>
+            </div>
+            <div class="border-t border-b border-dashed py-2 mb-4">
+                ${transaction.items.map(item => `
+                <div class="flex justify-between text-xs mb-1">
+                    <span>${item.quantity}x ${item.name}</span>
+                    <span>${formatCurrency(item.price * item.quantity)}</span>
+                </div>`).join('')}
+            </div>
+            <div class="text-xs text-right space-y-1 mb-4">
+                <p>Subtotal: ${formatCurrency(transaction.subtotal)}</p>
+                <p class="text-red-500">Diskon: -${formatCurrency(totalDiscount)}</p>
+                <p class="font-bold text-sm">Total: ${formatCurrency(transaction.total)}</p>
+                <p>Bayar via ${transaction.paymentMethod}</p>
+            </div>
+            <div class="flex justify-center my-4">
+                 <div id="qrcode-container"></div>
+            </div>
+            <p class="text-center text-xs text-gray-500">Terima kasih atas kunjungan Anda!</p>
+        </div>
+        <div class="p-4 bg-gray-100 flex justify-center">
+            <button onclick="closeModal()" class="px-6 py-2 bg-pink-500 text-white rounded-lg">Tutup</button>
+        </div>
+        `;
+        openModal(modalContent);
+
+        const qr = qrcode(0, 'L');
+        qr.addData(transactionJSON);
+        qr.make();
+        document.getElementById('qrcode-container').innerHTML = qr.createImgTag(4);
+    }
+    
+    function openModal(content) {
+        document.getElementById('modal-content').innerHTML = content;
+        document.getElementById('modal-container').classList.remove('hidden');
+    }
+
+    function closeModal() {
+        document.getElementById('modal-container').classList.add('hidden');
+        document.getElementById('modal-content').innerHTML = '';
+    }
+    
+    function initializeCharts(){
+        const salesByDay = state.transactions.reduce((acc, tx) => {
+            const date = new Date(tx.Timestamp).toLocaleDateString('id-ID');
+            acc[date] = (acc[date] || 0) + tx.Total;
+            return acc;
+        }, {});
+        
+        const categoryCount = state.transactions.flatMap(tx => JSON.parse(tx.ItemsJSON)).reduce((acc, item) => {
+             const category = (state.products.find(p => p.ProductID === item.id) || state.services.find(s => s.ServiceID === item.id))?.Category || 'Lainnya';
+             acc[category] = (acc[category] || 0) + (item.quantity * item.price);
+             return acc;
+        }, {});
+        
+        new Chart(document.getElementById('dailySalesChart'), {
+            type: 'line',
+            data: {
+                labels: Object.keys(salesByDay),
+                datasets: [{
+                    label: 'Total Penjualan',
+                    data: Object.values(salesByDay),
+                    borderColor: '#EC4899',
+                    backgroundColor: 'rgba(236, 72, 153, 0.1)',
+                    fill: true,
+                    tension: 0.3
+                }]
+            }
+        });
+
+        new Chart(document.getElementById('categoryPieChart'), {
+            type: 'doughnut',
+            data: {
+                labels: Object.keys(categoryCount),
+                datasets: [{
+                    label: 'Pendapatan per Kategori',
+                    data: Object.values(categoryCount),
+                    backgroundColor: ['#F472B6', '#EC4899', '#DB2777', '#BE185D', '#9D174D', '#831843'],
+                }]
+            }
+        });
+    }
+
+    function showLoading() { document.getElementById('loading-overlay').classList.remove('hidden'); }
+    function hideLoading() { document.getElementById('loading-overlay').classList.add('hidden'); }
+    function formatCurrency(number) {
+        return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(number);
+    }
+    
+    function setupSakura() {
+        const container = document.getElementById('sakura-container');
+        for (let i = 0; i < 20; i++) {
+            const petal = document.createElement('div');
+            petal.className = 'sakura-petal';
+            const size = Math.random() * 15 + 5;
+            petal.style.width = `${size}px`;
+            petal.style.height = `${size}px`;
+            petal.style.left = `${Math.random() * 100}vw`;
+            petal.style.animationDuration = `${Math.random() * 5 + 5}s`;
+            petal.style.animationDelay = `${Math.random() * 5}s`;
+            container.appendChild(petal);
+        }
+    }
+
+    </script>
+
+</body>
+</html>
+
