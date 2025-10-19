@@ -1,8 +1,9 @@
 /**
  * @OnlyCurrentDoc
- * Backend API untuk Aplikasi Kasir V3.
- * Penambahan fungsi untuk mendapatkan URL spreadsheet.
- * Penyesuaian `recordTransaction` untuk menangani format item yang lebih sederhana.
+ * Backend API untuk Aplikasi Kasir V4.
+ * Penambahan:
+ * - Menyimpan item kustom secara otomatis saat transaksi.
+ * - Endpoint baru untuk filter laporan berdasarkan rentang tanggal.
  */
 
 const SHEETS = {
@@ -44,8 +45,8 @@ function doPost(e) {
       case 'recordCashNote':
         responseData = recordCashNote(payload);
         break;
-      case 'getSpreadsheetUrl':
-        responseData = getSpreadsheetUrl();
+      case 'getFilteredData': // Endpoint baru
+        responseData = getFilteredData(payload);
         break;
       default:
         throw new Error('Action tidak valid: ' + action);
@@ -85,19 +86,40 @@ function setupSpreadsheet() {
   createSheetWithHeaders(SHEETS.CASH_NOTES, ['ID Catatan', 'Waktu', 'Tipe', 'Deskripsi', 'Nominal']);
 }
 
-function getSpreadsheetUrl() {
-  return SpreadsheetApp.getActiveSpreadsheet().getUrl();
-}
-
 function getInitialData() {
   const products = getSheetData(SHEETS.INVENTORY).map(row => ({ id: row[0], name: row[1], category: row[2], stock: row[3], price: row[4], buy_price: row[5], low_stock: row[6], type: 'product' }));
   const services = getSheetData(SHEETS.SERVICES).map(row => ({ id: row[0], name: row[1], category: row[2], price: row[3], type: 'service' }));
   const transactions = getSheetData(SHEETS.TRANSACTIONS);
   const customers = getSheetData(SHEETS.CUSTOMERS);
   const cashNotes = getSheetData(SHEETS.CASH_NOTES);
+  const spreadsheetUrl = SpreadsheetApp.getActiveSpreadsheet().getUrl();
   
-  return { products, services, transactions, customers, cashNotes };
+  return { products, services, transactions, customers, cashNotes, spreadsheetUrl };
 }
+
+function getFilteredData(payload) {
+    const { startDate, endDate } = payload;
+    if (!startDate || !endDate) {
+      throw new Error("Rentang tanggal harus disediakan.");
+    }
+    const start = new Date(startDate);
+    start.setHours(0, 0, 0, 0);
+    const end = new Date(endDate);
+    end.setHours(23, 59, 59, 999);
+
+    const filterByDate = (data, dateIndex) => {
+        return data.filter(row => {
+            const rowDate = new Date(row[dateIndex]);
+            return rowDate >= start && rowDate <= end;
+        });
+    };
+
+    const transactions = filterByDate(getSheetData(SHEETS.TRANSACTIONS), 1);
+    const cashNotes = filterByDate(getSheetData(SHEETS.CASH_NOTES), 1);
+
+    return { transactions, cashNotes };
+}
+
 
 function recordTransaction(transactionData) {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
@@ -106,6 +128,26 @@ function recordTransaction(transactionData) {
   const custSheet = ss.getSheetByName(SHEETS.CUSTOMERS);
 
   const transactionId = `INV-${new Date().getTime()}`;
+  
+  // Proses item kustom sebelum menyimpan transaksi
+  transactionData.items.forEach(item => {
+      if (item.type === 'custom' && item.id.startsWith('custom-')) {
+          const newId = `P${new Date().getTime()}${Math.floor(Math.random() * 100)}`;
+          // Simpan sebagai produk baru dengan stok unlimited (-1)
+          inventorySheet.appendRow([
+              newId,
+              item.name,
+              item.category || 'Kustom',
+              -1, // Stok unlimited
+              item.price,
+              0,  // Harga Beli default
+              0   // Notifikasi Stok Rendah default
+          ]);
+          item.id = newId; // Ganti ID sementara dengan ID permanen
+          item.type = 'product'; // Ubah tipe menjadi produk
+      }
+  });
+
   const itemsJSON = JSON.stringify(transactionData.items);
   
   transSheet.appendRow([
@@ -121,15 +163,14 @@ function recordTransaction(transactionData) {
     'Kasir'
   ]);
 
-  // Update stok (hanya untuk item yang memiliki ID dan bukan kustom)
+  // Update stok (hanya untuk item produk)
   if (inventorySheet && inventorySheet.getLastRow() > 1) {
     const productDataRange = inventorySheet.getRange(2, 1, inventorySheet.getLastRow() - 1, inventorySheet.getLastColumn());
     const productData = productDataRange.getValues();
     let needsUpdate = false;
     
     transactionData.items.forEach(item => {
-      // Cek jika item memiliki ID (bukan item kustom) dan merupakan produk
-      if (item.id && item.type === 'product') { 
+      if (item.type === 'product') { 
         for (let i = 0; i < productData.length; i++) {
           if (productData[i][0] === item.id) {
             const currentStock = Number(productData[i][3]);
@@ -188,8 +229,7 @@ function recordCashNote(noteData) {
 function getSheetData(sheetName) {
   if (!Object.values(SHEETS).includes(sheetName)) throw new Error("Nama sheet tidak valid.");
   const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(sheetName);
-  if (!sheet) { return []; }
-  if (sheet.getLastRow() <= 1) return [];
+  if (!sheet || sheet.getLastRow() <= 1) { return []; }
   return sheet.getRange(2, 1, sheet.getLastRow() - 1, sheet.getLastColumn()).getValues();
 }
 
@@ -233,4 +273,3 @@ function deleteItem(id, type) {
   }
   throw new Error('Item tidak ditemukan untuk dihapus.');
 }
-
